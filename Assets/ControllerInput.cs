@@ -4,12 +4,13 @@ using UnityEngine.XR;
 using System.Threading.Tasks;
 using System.Net.WebSockets;
 using UnityEditor.PackageManager;
+using Unity.VisualScripting;
 
 public class ControllerInput : MonoBehaviour {
     private InputDevice? leftController, rightController;
     private HTTPClient client = new HTTPClient();
     //private WebSocketClientClass webSocketClient;
-
+    private int modeTrigger = 1;
     private void Start()
     {
         //webSocketClient = GetComponent<WebSocketClientClass>();
@@ -67,7 +68,7 @@ public class ControllerInput : MonoBehaviour {
                     content.right_joystick_y = rightJoystickInput.y;
                     content.left_joystick_x = leftJoystickInput.x;
                     content.left_joystick_y = leftJoystickInput.y;
-                    content.mode_trigger = 0;
+                    content.mode_trigger = modeTrigger;
                     client.ClientConnect(content);
                 }
             }
@@ -85,7 +86,18 @@ public class ControllerInput : MonoBehaviour {
                 content.right_joystick_y = 0.0f;
                 content.right_joystick_x = 0.0f;
                 content.right_joystick_x = 0.0f;
-                content.mode_trigger = 1;
+                /*if (modeTrigger == 1)
+                {
+                    modeTrigger = 0;
+                    content.mode_trigger = 0;
+                }
+                else
+                {
+                    modeTrigger = 1;
+                    content.mode_trigger = 1;
+                }*/
+                modeTrigger = (modeTrigger == 1) ? 0 : 1;
+                content.mode_trigger = modeTrigger;
                 client.ClientConnect(content);
 
                 /*if (webSocketClient != null)
@@ -112,7 +124,7 @@ public class ControllerInput : MonoBehaviour {
                     content.right_joystick_y = 0.0f;
                     content.left_joystick_x = joystickInput.x;
                     content.left_joystick_y = joystickInput.y;
-                    content.mode_trigger = 0;
+                    content.mode_trigger = modeTrigger;
                     client.ClientConnect(content);
 
                     /*if (webSocketClient != null)
@@ -156,7 +168,7 @@ public class ControllerInput : MonoBehaviour {
                     content.left_joystick_y = 0.0f;
                     content.right_joystick_x = joystickInput.x;
                     content.right_joystick_y = joystickInput.y;
-                    content.mode_trigger = 0;
+                    content.mode_trigger = modeTrigger;
                     client.ClientConnect(content);
 
                     /*if (webSocketClient != null)
