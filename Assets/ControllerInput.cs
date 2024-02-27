@@ -9,8 +9,10 @@ using Unity.VisualScripting;
 public class ControllerInput : MonoBehaviour {
     private InputDevice? leftController, rightController;
     private HTTPClient client = new HTTPClient();
+    /*private animationScriptController animController = new animationScriptController();*/
     //private WebSocketClientClass webSocketClient;
     private int modeTrigger = 1;
+    /*private int DummyModeTrigger = 1;*/
     private void Start()
     {
         //webSocketClient = GetComponent<WebSocketClientClass>();
@@ -20,12 +22,12 @@ public class ControllerInput : MonoBehaviour {
     }
 
 
+
     // check for new input devices when new XRNode is added
     private void InputTracking_nodeAdded(XRNodeState obj)
     {
         updateInputDevices();
     }
-
 
     // find any devices supporting the desired feature usage
     void updateInputDevices()
@@ -61,13 +63,26 @@ public class ControllerInput : MonoBehaviour {
                 if ((leftJoystickInput != Vector2.zero) && (rightJoystickInput != Vector2.zero))
                 {
                     /*Debug.Log("LEFT: Joystick input: " + leftJoystickInput + "\nRIGHT: Joystick input: " + rightJoystickInput);*/
-                    Debug.Log("LEFT: Joystick input: " + leftJoystickInput.x + ","+ leftJoystickInput.y + "\nRIGHT: Joystick input: " + rightJoystickInput.x + "," + rightJoystickInput.y);
+                    /*Debug.Log("LEFT: Joystick input: " + leftJoystickInput.x + ","+ leftJoystickInput.y + "\nRIGHT: Joystick input: " + rightJoystickInput.x + "," + rightJoystickInput.y);*/
                     // You can use joystickInput.x and joystickInput.y to determine directions
                     JoystickContent content = new JoystickContent();
                     content.right_joystick_x = rightJoystickInput.x;
                     content.right_joystick_y = rightJoystickInput.y;
                     content.left_joystick_x = leftJoystickInput.x;
                     content.left_joystick_y = leftJoystickInput.y;
+                    content.mode_trigger = modeTrigger;
+                    client.ClientConnect(content);
+                }
+                else
+                {
+                    /*Debug.Log("LEFT: Joystick input: " + leftJoystickInput + "\nRIGHT: Joystick input: " + rightJoystickInput);*/
+                    /*Debug.Log(" ZERO LEFT: Joystick input: " + leftJoystickInput.x + "," + leftJoystickInput.y + "\nZERO RIGHT: Joystick input: " + rightJoystickInput.x + "," + rightJoystickInput.y);*/
+                    // You can use joystickInput.x and joystickInput.y to determine directions
+                    JoystickContent content = new JoystickContent();
+                    content.right_joystick_x = 0.0f;
+                    content.right_joystick_y = 0.0f;
+                    content.left_joystick_x = 0.0f;
+                    content.left_joystick_y = 0.0f;
                     content.mode_trigger = modeTrigger;
                     client.ClientConnect(content);
                 }
@@ -79,7 +94,7 @@ public class ControllerInput : MonoBehaviour {
         {
             if (leftController.Value.TryGetFeatureValue(CommonUsages.triggerButton, out bool triggerPressed) && triggerPressed)
             {
-                Debug.Log("LEFT: Trigger pressed");
+                /*Debug.Log("LEFT: Trigger pressed");*/
                 /*client.ClientConnect("LEFT: Trigger pressed");*/
                 JoystickContent content = new JoystickContent();
                 content.right_joystick_x = 0.0f;
@@ -97,6 +112,7 @@ public class ControllerInput : MonoBehaviour {
                     content.mode_trigger = 1;
                 }*/
                 modeTrigger = (modeTrigger == 1) ? 0 : 1;
+                /*animController.MoveAvatar(modeTrigger);*/
                 content.mode_trigger = modeTrigger;
                 client.ClientConnect(content);
 
@@ -113,7 +129,7 @@ public class ControllerInput : MonoBehaviour {
                 // Check joystick directions
                 if (joystickInput != Vector2.zero)
                 {
-                    Debug.Log("LEFT: Joystick input: " + joystickInput);
+                    /*Debug.Log("LEFT: Joystick input: " + joystickInput);*/
                     // You can use joystickInput.x and joystickInput.y to determine directions
                     /*client.ClientConnect(joystickInput.ToString());*/
                     /*client.ClientConnect(joystickInput.x.ToString());
@@ -133,6 +149,18 @@ public class ControllerInput : MonoBehaviour {
                         await webSocketClient.SendMessage(joystickInput.ToString());
                     }*/
                 }
+                else
+                {
+                    /*Debug.Log("LEFT: ZERO Joystick input: " + joystickInput);*/
+                    // You can use joystickInput.x and joystickInput.y to determine directions
+                    JoystickContent content = new JoystickContent();
+                    content.right_joystick_x = 0.0f;
+                    content.right_joystick_y = 0.0f;
+                    content.left_joystick_x = 0.0f;
+                    content.left_joystick_y = 0.0f;
+                    content.mode_trigger = modeTrigger;
+                    client.ClientConnect(content);
+                }
             }
         }
 
@@ -150,13 +178,20 @@ public class ControllerInput : MonoBehaviour {
                 }*//*
             }*/
 
+            /*if (rightController.Value.TryGetFeatureValue(CommonUsages.triggerButton, out bool triggerPressed) && triggerPressed)
+            {
+                Debug.Log("RRRRRIGHT: Trigger pressed");
+                DummyModeTrigger = (DummyModeTrigger == 1) ? 0 : 1;
+                animController.MoveAvatar(DummyModeTrigger);
+            }*/
+
             // Get joystick input
             if (rightController.Value.TryGetFeatureValue(CommonUsages.primary2DAxis, out Vector2 joystickInput))
             {
                 // Check joystick directions
                 if (joystickInput != Vector2.zero)
                 {
-                    Debug.Log("RIGHT: Joystick input: " + joystickInput);
+                    /*Debug.Log("RIGHT: Joystick input: " + joystickInput);*/
                     // You can use joystickInput.x and joystickInput.y to determine directions
 
                     /*client.ClientConnect(joystickInput.ToString());*/
@@ -176,6 +211,18 @@ public class ControllerInput : MonoBehaviour {
                         print("inside if webSocketClient joystick");
                         await webSocketClient.SendMessage(joystickInput.ToString());
                     }*/
+                }
+                else
+                {
+                    /*Debug.Log("RIGHT: ZERO Joystick input: " + joystickInput);*/
+                    // You can use joystickInput.x and joystickInput.y to determine directions
+                    JoystickContent content = new JoystickContent();
+                    content.right_joystick_x = 0.0f;
+                    content.right_joystick_y = 0.0f;
+                    content.left_joystick_x = 0.0f;
+                    content.left_joystick_y = 0.0f;
+                    content.mode_trigger = modeTrigger;
+                    client.ClientConnect(content);
                 }
             }
         }
