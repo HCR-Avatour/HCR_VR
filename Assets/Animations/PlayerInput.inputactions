@@ -94,7 +94,7 @@
                 {
                     "name": "",
                     "id": "6cff30cd-78b2-455b-b428-67f9708be644",
-                    "path": "<ViveController>{RightHand}/{TriggerButton}",
+                    "path": "<ViveController>{LeftHand}/{TriggerButton}",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

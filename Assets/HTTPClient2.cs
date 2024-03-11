@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Newtonsoft.Json;
 
-public class HTTPClient : MonoBehaviour
+public class HTTPClient2 : MonoBehaviour
 {
     // Instantiate one HttpClient for your application's lifetime
     private static readonly HttpClient client = new();
@@ -18,7 +18,7 @@ public class HTTPClient : MonoBehaviour
 
     /*private Dictionary<string, string> msg_values = new() { };*/
 
-    public async void ClientConnect(JoystickContent msg_content)
+    public async void ClientConnect2(JoystickContent2 msg_content)
     {
         //Debug.Log("string:"+server_url);
         Uri siteUri = new Uri(server_url);
@@ -107,11 +107,11 @@ public class HTTPClient : MonoBehaviour
 
 }
 
-public class JoystickContent
+public class JoystickContent2
 {
     public int mode_trigger { get; set; }
-    public float left_joystick_x { get; set; } 
-    public float left_joystick_y { get; set; } 
+    public float left_joystick_x { get; set; }
+    public float left_joystick_y { get; set; }
     public float right_joystick_x { get; set; }
     public float right_joystick_y { get; set; }
 }
