@@ -9,6 +9,7 @@ using System.Net.Http;
 
 public class ControllerInput : MonoBehaviour {
     private InputDevice? leftController, rightController;
+    private SpeechRecognitionTest SPT = new SpeechRecognitionTest();
     private HTTPClient client = new HTTPClient();
     /*private animationScriptController animController = new animationScriptController();*/
     //private WebSocketClientClass webSocketClient;

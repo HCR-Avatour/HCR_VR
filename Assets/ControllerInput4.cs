@@ -11,15 +11,22 @@ using UnityEngine.Networking;
 using HuggingFace.API;
 using Newtonsoft.Json;
 
+using TMPro;
+using UnityEngine.UI;
+using System.IO;
+
 public class ControllerInput4 : MonoBehaviour
 {
     private InputDevice? leftController, rightController;
+    SpeechRecognitionTest SRT = new SpeechRecognitionTest();
 
     private int modeTrigger = 1;
     private int controlTrigger = 0;
     private int flipflop = 1;
     private int ModeCounter = 0;
     private int countStart;
+    public LogJson logExport = new LogJson();
+    [SerializeField] private TextMeshProUGUI text;
 
     private readonly string server_url = "http://avatour.duckdns.org:5000/";
     JoystickDataWrapper wrapper = new JoystickDataWrapper();
@@ -28,7 +35,8 @@ public class ControllerInput4 : MonoBehaviour
     {
         updateInputDevices();
         InputTracking.nodeAdded += InputTracking_nodeAdded;
-
+        text = GameObject.Find("SpeechText (TMP)").GetComponent<TextMeshProUGUI>();
+        SRT = GetComponent<SpeechRecognitionTest>();
         /*Kinda obtuse but who knows, it might work to regulate the frequency of POSTs sent lol*/
         /*This should start instantly and call the postForMe function 20 times per second which shouldn't be many at all.*/
         /*InvokeRepeating("postForMe", 0, 0.05f);*/
@@ -40,7 +48,7 @@ public class ControllerInput4 : MonoBehaviour
         StartCoroutine(postRequest(server_url, JsonUtility.ToJson(wrapper)));
     }
 
-    IEnumerator postRequest(string url, string json)
+    public IEnumerator postRequest(string url, string json)
     {
         print("JJSON: " + json);
         print("Content:" + wrapper.content.leftJoystick);
@@ -59,7 +67,39 @@ public class ControllerInput4 : MonoBehaviour
         }
         else
         {
-            Debug.Log("Received: " + uwr.downloadHandler.text);
+            Debug.Log("RRReceived1: " + uwr.downloadHandler.text);
+        }
+    }
+
+    public IEnumerator postRequestLog(string url, string json)
+    {
+        print("JJSON: " + json);
+        print("Content:" + wrapper.content.leftJoystick);
+        var uwr = new UnityWebRequest(url, "POST");
+        byte[] jsonToSend = new System.Text.UTF8Encoding().GetBytes(json);
+        uwr.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
+        uwr.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        uwr.SetRequestHeader("Content-Type", "application/json");
+
+        //Send the request then wait here until it returns
+        yield return uwr.SendWebRequest();
+
+        if (uwr.isNetworkError)
+        {
+            Debug.Log("Error While Sending: " + uwr.error);
+        }
+        else
+        {
+            Debug.Log("RRReceived1: " + uwr.downloadHandler.text);
+            logExport = JsonUtility.FromJson<LogJson>(uwr.downloadHandler.text);
+            /*logExport.transcript = JsonConvert.SerializeObject(uwr.downloadHandler.text, Formatting.Indented);*/
+            text.text = logExport.transcript;
+            Debug.Log("killl" + logExport.transcript +"-----" +logExport.audioUrl + "-----" +logExport.loading);
+
+            Debug.Log("GGGlobal Variable loggingSRT: " + text.text);
+            Debug.Log("AAAfter receiving JSON");
+
+            Debug.Log("GGGlobal logging: " + logExport.transcript);
         }
     }
 
@@ -109,6 +149,12 @@ public class ControllerInput4 : MonoBehaviour
                     wrapper.content.Control = controlTrigger;
                     /*client.ClientConnect2(content);*/
                 }
+
+                if (leftController.Value.TryGetFeatureValue(CommonUsages.gripButton, out bool gripStartPressed) && gripStartPressed)
+                {
+                    Debug.Log("GGGgripStartPressed, so let's start recording");
+                    SRT.StartRecording();
+                }
             }
 
             // Just the right trigger
@@ -126,6 +172,11 @@ public class ControllerInput4 : MonoBehaviour
                     wrapper.content.Mode = modeTrigger;
                     wrapper.content.Control = controlTrigger;
                     /*client.ClientConnect2(content);*/
+                }
+                if (rightController.Value.TryGetFeatureValue(CommonUsages.gripButton, out bool gripStopPressed) && gripStopPressed)
+                {
+                    Debug.Log("GGGgripStopPressed, so let's start recording");
+                    SRT.StopRecording();
                 }
             }
 
@@ -283,4 +334,100 @@ public class JoystickDataWrapper
 
 }
 
+public class SpeechRecognitionTest2 : MonoBehaviour
+{
+    /*[SerializeField] private Button startButton;
+    [SerializeField] private Button stopButton;*/
+    /*[SerializeField] private TextMeshProUGUI text;*/
+    private string text;
+    private AudioClip clip;
+    private byte[] bytes;
+    private bool recording;
 
+    /*public SpeechRecognitionTest2()
+    { 
+
+    }*/
+    public void StartRecording()
+    {
+        /*text.color = Color.white;
+        text.text = "Recording...";*/
+        text = "RRRecording...";
+        Debug.Log(text);
+        /*startButton.interactable = false;
+        stopButton.interactable = true;*/
+        /*clip = Microphone.Start(null, false, 10, 44100);*/
+        clip = Microphone.Start("Microphone Array (AMD Audio Device)", false, 10, 48000);
+        recording = true;
+    }
+
+    private void Update()
+    {
+        if (recording && Microphone.GetPosition("Microphone Array (AMD Audio Device)") >= clip.samples)
+        {
+            StopRecording();
+        }
+    }
+
+    public void StopRecording()
+    {
+        Debug.Log("SSStop recording");
+        var position = Microphone.GetPosition("Microphone Array (AMD Audio Device)");
+        Microphone.End("Microphone Array (AMD Audio Device)");
+        var samples = new float[position * clip.channels];
+        clip.GetData(samples, 0);
+        bytes = EncodeAsWAV(samples, clip.frequency, clip.channels);
+        recording = false;
+        SendRecording();
+    }
+
+    public void SendRecording()
+    {
+        HuggingFaceAPI.AutomaticSpeechRecognition(bytes, response => {
+            /*text.color = Color.white;
+            text.text = response;*/
+            text = response;
+        }, error => {
+            /*text.color = Color.red;
+            text.text = error;*/
+            text = error;
+        });
+    }
+
+    public byte[] EncodeAsWAV(float[] samples, int frequency, int channels)
+    {
+        using (var memoryStream = new MemoryStream(44 + samples.Length * 2))
+        {
+            using (var writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write("RIFF".ToCharArray());
+                writer.Write(36 + samples.Length * 2);
+                writer.Write("WAVE".ToCharArray());
+                writer.Write("fmt ".ToCharArray());
+                writer.Write(16);
+                writer.Write((ushort)1);
+                writer.Write((ushort)channels);
+                writer.Write(frequency);
+                writer.Write(frequency * channels * 2);
+                writer.Write((ushort)(channels * 2));
+                writer.Write((ushort)16);
+                writer.Write("data".ToCharArray());
+                writer.Write(samples.Length * 2);
+
+                foreach (var sample in samples)
+                {
+                    writer.Write((short)(sample * short.MaxValue));
+                }
+            }
+            return memoryStream.ToArray();
+        }
+    }
+
+}
+
+public class LogJson
+{
+    public string transcript;
+    public string audioUrl;
+    public bool loading;
+}
