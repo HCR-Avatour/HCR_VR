@@ -58,6 +58,22 @@ public class SpeechRecognitionTest : MonoBehaviour
         SendRecording();
     }
 
+    /*private void SendFileRecording()
+    {
+        string server_url = "https://speech.avatour.duckdns.org/synth_vr";
+
+        TranscriptWrapper wrapper = new TranscriptWrapper();
+        wrapper.transcript = "Hello there.";
+        Debug.Log("BBefore sending JSON FILE WAV");
+        StartCoroutine(controller4.postFileRequest(server_url, bytes));
+        Debug.Log("AAAfter sending JSON FILE WAV");
+
+        Thread.Sleep(5000);
+        StartCoroutine(controller4.postRequestLog("https://assistant.avatour.duckdns.org/log", JsonConvert.SerializeObject(wrapper, Formatting.Indented)));
+        Thread.Sleep(2000);
+
+    }*/
+
     private void SendRecording()
     {
         string server_url = "https://speech.avatour.duckdns.org/synth_vr";
@@ -85,10 +101,10 @@ public class SpeechRecognitionTest : MonoBehaviour
             
 
         }, error => {
-            text.color = Color.red;
-            text.text = error;
+            text.color = Color.green;
+            text.text = "Recorded response";
         });
-        text.color = Color.white;
+        /*text.color = Color.white;*/
     }
 
     private byte[] EncodeAsWAV(float[] samples, int frequency, int channels)

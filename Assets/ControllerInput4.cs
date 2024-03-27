@@ -71,6 +71,28 @@ public class ControllerInput4 : MonoBehaviour
         }
     }
 
+    public IEnumerator postFileRequest(string url, byte[] bytes)
+    {
+        print("Content:" + wrapper.content.leftJoystick);
+        var uwr = new UnityWebRequest(url, "POST");
+        byte[] jsonToSend = bytes;
+        uwr.uploadHandler = (UploadHandler)new UploadHandlerRaw(jsonToSend);
+        uwr.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        uwr.SetRequestHeader("Content-Type", "application/json");
+
+        //Send the request then wait here until it returns
+        yield return uwr.SendWebRequest();
+
+        if (uwr.isNetworkError)
+        {
+            Debug.Log("Error While Sending File: " + uwr.error);
+        }
+        else
+        {
+            Debug.Log("RRReceived1 File: " + uwr.downloadHandler.text);
+        }
+    }
+
     public IEnumerator postRequestLog(string url, string json)
     {
         print("JJSON: " + json);
